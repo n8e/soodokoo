@@ -7,7 +7,10 @@
  */
 
 import React from 'react';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 import {
+  Alert,
   Button,
   Linking,
   SafeAreaView,
@@ -18,23 +21,14 @@ import {
   View,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {createStore, compose, applyMiddleware} from 'redux';
-import thunk from 'redux-thunk';
-import rootReducer from './reducers';
 import Grid from './components/Grid';
 import {isSolvable, isComplete} from './utils/sudoku';
 import {solve, clear, undo} from './actions/grid';
 
-const finalCreateStore = compose(
-  applyMiddleware(thunk),
-  window.devToolsExtension ? window.devToolsExtension() : f => f,
-)(createStore);
-
-const store = finalCreateStore(rootReducer);
-
-const App: () => React$Node = props => {
-  const {grid, status} = store.getState();
+const App = props => {
+  const {grid, status} = props;
   const {isSolved, isEdited} = status;
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -42,20 +36,20 @@ const App: () => React$Node = props => {
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}>
-          <View style={{marginTop: '10%'}}>
+          <View style={styles.container}>
             <Button
               className="undo"
               disabled={window.gridHistory && !window.gridHistory.length}
-              onClick={() => store.dispatch(undo())}
-              style={{fontSize: '2.8em'}}
+              onPress={() => props.dispatch(undo())}
+              style={styles.btn}
               title="undo">
               <Text>⤺ Undo</Text>
             </Button>
             <Button
               className="clear"
               disabled={!isEdited}
-              onClick={() => store.dispatch(clear())}
-              style={{fontSize: '2.8em'}}
+              onPress={() => props.dispatch(clear())}
+              style={styles.btn}
               title="clear">
               <Text>⟲ Clear</Text>
             </Button>
@@ -65,24 +59,24 @@ const App: () => React$Node = props => {
             <Button
               className="check"
               disabled={isSolved}
-              onClick={() => {
+              onPress={() => {
                 if (isSolvable(grid)) {
                   if (isComplete(grid)) {
-                    return alert('Congratulations, you solved it!!');
+                    return Alert.alert('Congratulations, you solved it!!');
                   }
-                  alert('This Sudoku is solvable, keep going !!');
+                  Alert.alert('This Sudoku is solvable, keep going !!');
                 } else {
-                  alert('This Sudoku is NOT solvable');
+                  Alert.alert('This Sudoku is NOT solvable');
                 }
               }}
-              style={{fontSize: '2.8em'}}
+              style={styles.btn}
               title="check">
               <Text>Check</Text>
             </Button>
             <Button
               className="solve"
-              onClick={() => store.dispatch(solve())}
-              style={{fontSize: '2.8em'}}
+              onPress={() => props.dispatch(solve())}
+              style={styles.btn}
               title="solve">
               <Text>Solve</Text>
             </Button>
@@ -90,14 +84,14 @@ const App: () => React$Node = props => {
               <View>
                 <Text>Adapted from </Text>
                 <Text
-                  style={{color: 'blue'}}
+                  style={styles.blueTxt}
                   onPress={() => Linking.openURL('http://danialk.github.io/')}>
                   Danial Khosravi
                 </Text>
               </View>
               <View>
                 <Text
-                  style={{color: 'blue'}}
+                  style={styles.blueTxt}
                   onPress={() => Linking.openURL('http://github.com/n8e')}>
                   Nate Martin
                 </Text>
@@ -111,42 +105,31 @@ const App: () => React$Node = props => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginTop: '10%',
+  },
   scrollView: {
     backgroundColor: Colors.lighter,
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  btn: {
+    fontSize: 30,
   },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+  blueTxt: {
+    color: 'blue',
   },
 });
 
-export default App;
+const mapStateToProps = state => {
+  const {grid, status} = state;
+  return {grid, status};
+};
+
+const mapDispatchToProps = dispatch => {
+  let actions = bindActionCreators({undo, clear, solve}, dispatch);
+  return {...actions, dispatch};
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(App);

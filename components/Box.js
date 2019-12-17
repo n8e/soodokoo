@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 import {StyleSheet, TextInput, View} from 'react-native';
 import {inputValue} from '../actions/grid';
 
@@ -23,20 +24,20 @@ const getBoxColor = (row, col) => {
 
 /* Box Component */
 
-const Box = ({val, row, col, isSolved, store}) => {
+const Box = ({val, row, col, isSolved, dispatch}) => {
   const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
     setIsFixed(val ? true : false);
   }, [val]);
 
-  const handleChange = e => {
+  const handleChange = value => {
     const range = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const newVal = parseInt(e.target.value);
-    const isDeleted = e.target.value === '';
+    const newVal = parseInt(value, 10);
+    const isDeleted = value === '';
 
     if (range.indexOf(newVal) > -1 || isDeleted) {
-      store.dispatch(inputValue(row, col, isDeleted ? 0 : newVal));
+      dispatch(inputValue(row, col, isDeleted ? 0 : newVal));
     }
   };
   const styles = StyleSheet.create({
@@ -45,7 +46,10 @@ const Box = ({val, row, col, isSolved, store}) => {
       alignSelf: 'stretch',
     },
     txtInput: {
+      alignSelf: 'center',
       backgroundColor: getBoxColor(row, col),
+      borderWidth: 1,
+      borderColor: '#aaa',
       fontSize: 30,
       height: '100%',
       width: '100%',
@@ -53,33 +57,23 @@ const Box = ({val, row, col, isSolved, store}) => {
   });
 
   const inputRef = useRef(null);
-  const input = (
-    <TextInput
-      ref={inputRef}
-      style={styles.txtInput}
-      className={isFixed ? 'fixed' : isSolved ? 'result' : ''}
-      disabled={isFixed || isSolved}
-      value={val ? val : ''}
-      onChange={handleChange}
-    />
-  );
 
   return (
     <View style={styles.tblDef}>
-      {isSolved ? (
-        <ReactCSSTransitionGroup
-          transitionName="solved"
-          transitionAppear={true}
-          transitionEnterTimeout={200}
-          transitionLeaveTimeout={200}
-          transitionAppearTimeout={200}>
-          {input}
-        </ReactCSSTransitionGroup>
-      ) : (
-        input
-      )}
+      <TextInput
+        ref={inputRef}
+        style={styles.txtInput}
+        className={isFixed ? 'fixed' : isSolved ? 'result' : ''}
+        disabled={isFixed || isSolved}
+        value={val ? String(val) : ''}
+        onChangeText={handleChange}
+        keyboardType={'numeric'}
+      />
     </View>
   );
 };
 
-export default Box;
+const mapDispatchToProps = dispatch =>
+  bindActionCreators({inputValue}, dispatch);
+
+export default connect(mapDispatchToProps)(Box);
