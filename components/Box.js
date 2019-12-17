@@ -49,7 +49,7 @@ const Box = ({val, row, col, isSolved, dispatch}) => {
       alignSelf: 'center',
       backgroundColor: getBoxColor(row, col),
       borderWidth: 1,
-      borderColor: '#aaa',
+      borderColor: '#fff',
       fontSize: 30,
       height: '100%',
       width: '100%',
