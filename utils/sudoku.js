@@ -134,7 +134,7 @@ export const isSolvable = grid => {
 	If each of the numbers from 1 to 9 are repeated on the grid 9 times
 	indicates the suduko is completed/solved
 */
-export const isComplete = grid => {
+export const isComplete = (grid) => {
   let values = flatten(grid);
   let list = {};
   values.map(val => (list[val] = list[val] ? list[val] + 1 : 1));
